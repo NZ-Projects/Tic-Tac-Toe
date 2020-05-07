@@ -1,5 +1,7 @@
 package logic;
 
+import java.util.Random;
+
 public class Grid {
 	private int x,y;
 	private char value;
@@ -14,18 +16,10 @@ public class Grid {
 		return x;
 	}
 
-	public void setX(int x) {
-		this.x = x;
-	}
-
 	public int getY() {
 		return y;
 	}
 
-	public void setY(int y) {
-		this.y = y;
-	}
-	
 	public char getValue() {
 		return value;
 	}
@@ -40,6 +34,14 @@ public class Grid {
 
 	public void setClicked(boolean isClicked) {
 		this.isClicked = isClicked;
+	}
+	
+	public static Grid GetRandomGrid(int max) {
+		Random random = new Random();
+		int x = random.nextInt(max);
+		int y = random.nextInt(max);
+
+		return new Grid(x,y);
 	}
 	
 	@Override

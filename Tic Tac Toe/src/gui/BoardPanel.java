@@ -20,46 +20,61 @@ public class BoardPanel extends JPanel implements MouseListener{
 	private Board board = new Board();
 	private Player player = new Player("test", 'X');
 	private Player computer = new Player("computer", 'O');
+	private boolean gameOver, gameWon, gameTie;
 	private int mousePressX, mousePressY;
+	private int remaningGrids = Board.SIZE*Board.SIZE;
 	
 	private ArrayList<Point> coordinates = new ArrayList<Point>(Board.SIZE);
 	
 	
 	public BoardPanel() {
-		this.addMouseListener(this);
-		
+		this.addMouseListener(this);		
 	}
 	
 	public void paint(Graphics graphic){
 		super.paint(graphic);
 		drawBoard(graphic);
+		
+		if(this.gameWon)
+			setBackground(Color.green);
+		
+		if(this.gameOver)
+			setBackground(Color.red);
+		
+		if(this.gameTie)
+			setBackground(Color.orange);
 	}
 	
 	private void drawBoard(Graphics graphic) {
 		int squareWidth = getWidth()/Board.SIZE, squareHeight = getHeight()/Board.SIZE;
 		
-		for(int i=0; i<Board.SIZE*Board.SIZE; i++) {
-				int xsquare = this.board.get(i).getX() * squareWidth;
-				int ysquare = this.board.get(i).getY() * squareHeight;
+		for(int i=0; i<Board.SIZE; i++) {
+			for(int j=0; j<Board.SIZE; j++) {
+				int xsquare = this.board.get(i,j).getX() * squareWidth;
+				int ysquare = this.board.get(i,j).getY() * squareHeight;
 				graphic.drawRect(xsquare, ysquare, squareWidth, squareHeight);
 				
-				if(this.board.get(i).isClicked()) {
+				if(this.board.get(i,j).isClicked()) {
 					graphic.setColor(Color.black);
 					
-					int x = this.board.get(i).getX() * (squareWidth) + (squareWidth / 2);
-					int y = (this.board.get(i).getY() + 1) * (squareHeight) - (squareHeight / 2);
+					int x = this.board.get(i,j).getX() * (squareWidth) + (squareWidth / 2);
+					int y = (this.board.get(i,j).getY() + 1) * (squareHeight) - (squareHeight / 2);
 					
-					String str = String.valueOf(this.board.get(i).getValue());
+					String str = String.valueOf(this.board.get(i,j).getValue());
 					graphic.drawString(str, x, y);
-					System.out.println("hannna");
 				}
 					
 				coordinates.add(new Point(xsquare, ysquare));
+			}
 		}
 	}
+	
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if(this.gameOver || this.gameWon || this.gameTie)
+			return;
+		
 		int squareWidth = getWidth()/Board.SIZE, squareHeight = getHeight()/Board.SIZE;
 		
 		this.mousePressX = e.getX();
@@ -72,15 +87,45 @@ public class BoardPanel extends JPanel implements MouseListener{
 			int minY = (int)this.coordinates.get(i).getY();
 			int maxY = (int)this.coordinates.get(i).getY() + squareHeight;
 
-			if ((this.mousePressX >= minX && this.mousePressX <= maxX)
-					&& (this.mousePressY >= minY && this.mousePressY <= maxY)) {
-				int index = this.board.getGridIndex(new Grid(minX / squareWidth, minY / squareHeight));
-				if(index!=-1) {
-					this.board.get(index).setClicked(true);
-					this.board.get(index).setValue(this.player.getSign());
+			if ((this.mousePressX >= minX && this.mousePressX <= maxX) && (this.mousePressY >= minY && this.mousePressY <= maxY)) {
+				int x = minX/squareWidth;
+				int y = minY/squareHeight;
+				
+				//Ignore mouse click if Grid is already clicked
+				if(this.board.get(x,y).isClicked())
+					return;
+				
+				this.board.get(x,y).setClicked(true);
+				this.board.get(x,y).setValue(this.player.getSign());
+				this.remaningGrids--;
+				
+				boolean playerWon = this.board.checkBoard(this.player.getSign());
+				if (playerWon) {
+					this.gameWon = true;
+					break;
+				}				
+				else if (this.remaningGrids>0){
+					//Setup computer move
+					Grid randomGrid = Grid.GetRandomGrid(Board.SIZE);
+					while(this.board.get(randomGrid.getX(), randomGrid.getY()).isClicked()) {
+						randomGrid = Grid.GetRandomGrid(Board.SIZE);
+					}
+					
+					this.board.get(randomGrid.getX(),randomGrid.getY()).setClicked(true);
+					this.board.get(randomGrid.getX(),randomGrid.getY()).setValue(this.computer.getSign());
+					this.remaningGrids--;
+					
+					boolean computerWon = this.board.checkBoard(this.computer.getSign());
+					if (computerWon) {
+						this.gameOver = true;
+						break;
+					}
+				}
+				else{
+					this.gameTie = true;
 					break;
 				}
-				
+				break;					
 			}
 		}
 		

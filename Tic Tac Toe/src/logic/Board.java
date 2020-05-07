@@ -2,32 +2,64 @@ package logic;
 
 public class Board {
 	public final static int SIZE = 3;
-	private Grid[] boardGame = new Grid[SIZE*SIZE];
+	private Grid[][] boardGame = new Grid[SIZE][SIZE];
 	
-	public Board() {
-		int x=0, y=0;
-		for(int i=0; i<boardGame.length; i++) {
-			if(y==SIZE) {
-				y=0;
-				x++;
-				i--;
-				continue;
+	public Board() {		
+		for(int i=0; i<this.boardGame.length; i++) {
+			for(int j=0; j<this.boardGame[0].length; j++) {
+				this.boardGame[i][j] = new Grid(i,j);
 			}
-			this.boardGame[i] = new Grid(x,y);
-			y++;
-		}		
+		}
 	}
 	
-	public Grid get(int index) {
-		return this.boardGame[index];
+	public Grid get(int x, int y) {
+		return this.boardGame[x][y];
 	}
 	
-	public int getGridIndex(Grid grid) {
-		for(int i=0; i<boardGame.length; i++) {
-			if(this.boardGame[i].equals(grid))
-				return i;
+	
+	public boolean checkBoard(char sign) {
+		//Check columns
+		for(int i=0; i<this.boardGame.length; i++) {
+			int count = 0;
+			if(this.boardGame[i][0].getValue()!=sign)
+				continue;
+			
+			for(int j=0; j<this.boardGame[0].length; j++) {
+				if(this.boardGame[i][j].getValue()==sign)
+					count++;			
+				if(count==3)
+					return true;
+			}
 		}
 		
-		return -1;
+		//Check rows
+		for(int j=0; j<this.boardGame.length; j++) {
+			int count = 0;
+			if(this.boardGame[0][j].getValue()!=sign)
+				continue;
+			
+			for(int i=0; i<this.boardGame[0].length; i++) {
+				if(this.boardGame[i][j].getValue()==sign)
+					count++;			
+				if(count==3)
+					return true;
+			}
+		}
+		
+		//Check diagonal
+		int count = 0;
+		for(int i=0,j=0; (i<SIZE && j<SIZE); i++,j++) {		
+			if(this.boardGame[i][j].getValue()==sign)
+				count++;		
+			if(count==3)
+				return true;
+		}
+		
+		//check anti diagonal
+		if(this.boardGame[0][2].getValue()==sign && this.boardGame[1][1].getValue()==sign && this.boardGame[2][0].getValue()==sign)
+			return true;
+		
+		
+		return false;
 	}
 }
